@@ -77,9 +77,9 @@ int main()
 
 		// 1.3
 		// Запросите и напечатайте так же в консоль вендора данной платформы
-		char vendorName[20];
+		char vendorName[256];
 		size_t vendorNameSize;
-		OCL_SAFE_CALL(clGetPlatformInfo(platform, CL_PLATFORM_VENDOR, 20, vendorName, &vendorNameSize));
+		OCL_SAFE_CALL(clGetPlatformInfo(platform, CL_PLATFORM_VENDOR, 256, vendorName, &vendorNameSize));
 		std::cout << "    Vendor name: " << vendorName << std::endl;
 
 		// 2.1
