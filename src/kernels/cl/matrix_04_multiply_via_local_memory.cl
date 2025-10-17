@@ -47,6 +47,8 @@ __kernel void matrix_04_multiply_via_local_memory(
         for (int k = 0; k < GROUP_SIZE_X; k++) {
             acc += local_a[x_local][k] * local_b[k][y_local];
         }
+
+        barrier(CLK_LOCAL_MEM_FENCE);
     }
 
     if (x_global < h && y_global < w) {
