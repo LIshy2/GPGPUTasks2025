@@ -1,7 +1,6 @@
 #include "kernels.h"
 
 #include "cl/generated_kernels/aplusb.h"
-#include "cl/generated_kernels/fill_buffer_with_zeros.h"
 #include "cl/generated_kernels/prefix_sum_01_reduction.h"
 #include "cl/generated_kernels/prefix_sum_02_prefix_accumulation.h"
 
