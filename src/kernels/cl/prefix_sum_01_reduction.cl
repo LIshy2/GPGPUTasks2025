@@ -53,7 +53,7 @@ prefix_sum_01_reduction(
         // printf("pref_sum %d=%d d=%d\n", g_ind, prefixes[g_ind], data[g_ind]);
     }
 
-    if (l_ind == GROUP_SIZE - 1) {
+    if (l_ind == GROUP_SIZE - 1 && g_ind < n) {
         // printf("block %d %d %d\n", g_ind / GROUP_SIZE, prefixes[g_ind], g_ind);
         blocks[g_ind / GROUP_SIZE] = prefixes[g_ind];
     }
