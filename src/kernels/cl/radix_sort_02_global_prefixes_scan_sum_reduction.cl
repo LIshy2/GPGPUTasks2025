@@ -2,11 +2,12 @@
 #include <libgpu/opencl/cl/clion_defines.cl> // This file helps CLion IDE to know what additional functions exists in OpenCL's extended C99
 #endif
 
-#include "helpers/rassert.cl"
 #include "../defines.h"
+#include "helpers/rassert.cl"
 
 __attribute__((reqd_work_group_size(GROUP_SIZE, 1, 1)))
-__kernel void radix_sort_02_global_prefixes_scan_sum_reduction(
+__kernel void
+radix_sort_02_global_prefixes_scan_sum_reduction(
     // это лишь шаблон! смело меняйте аргументы и используемые буфера! можете сделать даже больше кернелов, если это вызовет затруднения - смело спрашивайте в чате
     // НЕ ПОДСТРАИВАЙТЕСЬ ПОД СИСТЕМУ! СВЕРНИТЕ С РЕЛЬС!! БУНТ!!! АНТИХАЙП!11!!1
     __global const uint* data,
@@ -27,7 +28,9 @@ __kernel void radix_sort_02_global_prefixes_scan_sum_reduction(
 
     barrier(CLK_LOCAL_MEM_FENCE);
 
-    prefixes[g_ind] = 0;
+    if (g_ind < n) {
+        prefixes[g_ind] = 0;
+    }
 
     for (uint pow2 = 1; pow2 < GROUP_SIZE; pow2 *= 2) {
         uint i = (l_ind + 1) * pow2 * 2 - 1;
