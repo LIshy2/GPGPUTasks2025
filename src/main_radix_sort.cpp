@@ -1,8 +1,8 @@
 #include <libbase/stats.h>
 #include <libutils/misc.h>
 
-#include <libbase/timer.h>
 #include <libbase/fast_random.h>
+#include <libbase/timer.h>
 #include <libgpu/vulkan/engine.h>
 #include <libgpu/vulkan/tests/test_utils.h>
 
@@ -12,6 +12,21 @@
 #include "debug.h" // TODO очень советую использовать debug::prettyBits(...) для отладки
 
 #include <fstream>
+
+gpu::gpu_mem_32u calculate_prefix(ocl::KernelSource& ocl_sum_local, ocl::KernelSource& ocl_prefix_accumulation, const gpu::gpu_mem_32u& data, int n)
+{
+    gpu::WorkSize workSize(GROUP_SIZE, n);
+    int blocks_n = (n + GROUP_SIZE - 1) / GROUP_SIZE;
+    gpu::gpu_mem_32u prefixes(n);
+    gpu::gpu_mem_32u block_prefixes(blocks_n);
+    ocl_sum_local.exec(workSize, data, prefixes, block_prefixes, n);
+    if (n <= GROUP_SIZE) {
+        return prefixes;
+    }
+    auto blocks_res = calculate_prefix(ocl_sum_local, ocl_prefix_accumulation, block_prefixes, blocks_n);
+    ocl_prefix_accumulation.exec(workSize, prefixes, blocks_res, n);
+    return prefixes;
+}
 
 void run(int argc, char** argv)
 {
@@ -54,7 +69,9 @@ void run(int argc, char** argv)
     int max_value = std::numeric_limits<int>::max(); // TODO при отладке используйте минимальное max_value (например max_value=8) при котором воспроизводится бага
     std::vector<unsigned int> as(n, 0);
     std::vector<unsigned int> sorted(n, 0);
+    // std::cout << "as:" << std::endl;
     for (size_t i = 0; i < n; ++i) {
+        // std::cout << "a[" << i << "] = " << as[i] << std::endl;
         as[i] = r.next(0, max_value);
     }
     std::cout << "n=" << n << " max_value=" << max_value << std::endl;
@@ -109,13 +126,27 @@ void run(int argc, char** argv)
         // Запускаем кернел, с указанием размера рабочего пространства и передачей всех аргументов
         // Если хотите - можете удалить ветвление здесь и оставить только тот код который соответствует вашему выбору API
         if (context.type() == gpu::Context::TypeOpenCL) {
-            // TODO
-            throw std::runtime_error(CODE_IS_NOT_IMPLEMENTED);
-            // ocl_fillBufferWithZeros.exec();
-            // ocl_radixSort01LocalCounting.exec();
-            // ocl_radixSort02GlobalPrefixesScanSumReduction.exec();
-            // ocl_radixSort03GlobalPrefixesScanAccumulation.exec();
-            // ocl_radixSort04Scatter.exec();
+            gpu::WorkSize workSize(GROUP_SIZE, n);
+
+            ocl_fillBufferWithZeros.exec(workSize, buffer1_gpu, max_value);
+            ocl_radixSort01LocalCounting.exec(workSize, input_gpu, buffer1_gpu, n);
+
+            // std::vector<unsigned int> counts = buffer1_gpu.readVector();
+            // std::cout << "counts:" << std::endl;
+            // for (int i = 0; i < max_value; ++i) {
+            //     std::cout << i << ": " << counts[i] << std::endl;
+            // }
+
+            auto pos = calculate_prefix(ocl_radixSort02GlobalPrefixesScanSumReduction, ocl_radixSort03GlobalPrefixesScanAccumulation, buffer1_gpu, max_value);
+
+            // std::vector<unsigned int> cpu_pos = pos.readVector();
+            // std::cout << "prefixes:" << std::endl;
+            // for (int i = 0; i < max_value; ++i) {
+            //     std::cout << i << ": " << cpu_pos[i] << std::endl;
+            // }
+
+            ocl_radixSort04Scatter.exec(workSize, pos, input_gpu, buffer_output_gpu, n);
+
         } else if (context.type() == gpu::Context::TypeCUDA) {
             // TODO
             throw std::runtime_error(CODE_IS_NOT_IMPLEMENTED);
@@ -168,7 +199,8 @@ int main(int argc, char** argv)
         if (e.what() == DEVICE_NOT_SUPPORT_API) {
             // Возвращаем exit code = 0 чтобы на CI не было красного крестика о неуспешном запуске из-за выбора CUDA API (его нет на процессоре - т.е. в случае CI на GitHub Actions)
             return 0;
-        } if (e.what() == CODE_IS_NOT_IMPLEMENTED) {
+        }
+        if (e.what() == CODE_IS_NOT_IMPLEMENTED) {
             // Возвращаем exit code = 0 чтобы на CI не было красного крестика о неуспешном запуске из-за того что задание еще не выполнено
             return 0;
         } else {
