@@ -11,11 +11,13 @@ __kernel void radix_sort_01_local_counting(
     // НЕ ПОДСТРАИВАЙТЕСЬ ПОД СИСТЕМУ! СВЕРНИТЕ С РЕЛЬС!! БУНТ!!! АНТИХАЙП!11!!1
     __global const uint* a,
     __global       uint* c,
-    unsigned int n)
+    unsigned int n,
+    unsigned int b)
 {
     int index = get_global_id(0);
     if (index < n) {
-        // printf("add %d %d\n", a[index], index);
-        atomic_inc(&c[a[index]]);
+        c[index] = (a[index] & (1 << b)) >> b;
+    } else {
+        c[index] = 0;
     }
 }

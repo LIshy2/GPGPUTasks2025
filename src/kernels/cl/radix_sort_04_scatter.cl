@@ -13,9 +13,18 @@ radix_sort_04_scatter(
     __global uint* positions,
     __global const uint* data,
     __global uint* result,
-    unsigned int n)
+    unsigned int n,
+    unsigned int b)
 {
     int index = get_global_id(0);
-    int to_put = atomic_dec(&positions[data[index]]) - 1;
-    result[to_put] = data[index];
+    int all = n - positions[n - 1];
+    if (index < n) {
+        if (data[index] & (1 << b)) {
+            // printf("put one bit %d=%d at %d\n", index, data[index], all + positions[index] - 1);
+            result[all + positions[index] - 1] = data[index];
+        } else {
+            // printf("put zero bit %d=%d at %d\n", index, data[index], index - positions[index]);
+            result[index - positions[index]] = data[index];
+        }
+    }
 }
