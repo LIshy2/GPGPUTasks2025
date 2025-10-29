@@ -15,6 +15,7 @@ __kernel void radix_sort_01_local_counting(
 {
     int index = get_global_id(0);
     if (index < n) {
+        // printf("add %d %d\n", a[index], index);
         atomic_inc(&c[a[index]]);
     }
 }

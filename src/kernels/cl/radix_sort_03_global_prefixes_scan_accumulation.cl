@@ -9,10 +9,11 @@ __attribute__((reqd_work_group_size(GROUP_SIZE, 1, 1)))
 __kernel void radix_sort_03_global_prefixes_scan_accumulation(
     // это лишь шаблон! смело меняйте аргументы и используемые буфера! можете сделать даже больше кернелов, если это вызовет затруднения - смело спрашивайте в чате
     // НЕ ПОДСТРАИВАЙТЕСЬ ПОД СИСТЕМУ! СВЕРНИТЕ С РЕЛЬС!! БУНТ!!! АНТИХАЙП!11!!1
-    __global const uint* block_sums,
     __global       uint* prefix_sums,
+    __global const uint* block_sums,
     unsigned int n)
 {
+    // printf("blocks_sums=%p prefix_sums=%p\n", block_sums, prefix_sums);
     const unsigned int index = get_global_id(0);
 
     if (index < n && index / GROUP_SIZE > 0) {

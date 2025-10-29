@@ -15,15 +15,18 @@
 
 gpu::gpu_mem_32u calculate_prefix(ocl::KernelSource& ocl_sum_local, ocl::KernelSource& ocl_prefix_accumulation, const gpu::gpu_mem_32u& data, int n)
 {
+    // printf("recursive call on length %d\n", n);
     gpu::WorkSize workSize(GROUP_SIZE, n);
     int blocks_n = (n + GROUP_SIZE - 1) / GROUP_SIZE;
     gpu::gpu_mem_32u prefixes(n);
     gpu::gpu_mem_32u block_prefixes(blocks_n);
     ocl_sum_local.exec(workSize, data, prefixes, block_prefixes, n);
     if (n <= GROUP_SIZE) {
+        // printf("one group calculated\n");
         return prefixes;
     }
     auto blocks_res = calculate_prefix(ocl_sum_local, ocl_prefix_accumulation, block_prefixes, blocks_n);
+    // printf("blocks calculated\n");
     ocl_prefix_accumulation.exec(workSize, prefixes, blocks_res, n);
     return prefixes;
 }
@@ -71,8 +74,8 @@ void run(int argc, char** argv)
     std::vector<unsigned int> sorted(n, 0);
     // std::cout << "as:" << std::endl;
     for (size_t i = 0; i < n; ++i) {
-        // std::cout << "a[" << i << "] = " << as[i] << std::endl;
         as[i] = r.next(0, max_value);
+        // std::cout << "a[" << i << "] = " << as[i] << std::endl;
     }
     std::cout << "n=" << n << " max_value=" << max_value << std::endl;
 
@@ -104,7 +107,7 @@ void run(int argc, char** argv)
 
     // Аллоцируем буферы в VRAM
     gpu::gpu_mem_32u input_gpu(n);
-    gpu::gpu_mem_32u buffer1_gpu(n), buffer2_gpu(n), buffer3_gpu(n), buffer4_gpu(n); // TODO это просто шаблонка, можете переименовать эти буферы, сделать другого размера/типа, удалить часть, добавить новые
+    gpu::gpu_mem_32u buffer1_gpu(max_value + 1); // TODO это просто шаблонка, можете переименовать эти буферы, сделать другого размера/типа, удалить часть, добавить новые
     gpu::gpu_mem_32u buffer_output_gpu(n);
 
     // Прогружаем входные данные по PCI-E шине: CPU RAM -> GPU VRAM
@@ -113,31 +116,28 @@ void run(int argc, char** argv)
     // В некоторых случаях это ускоряет отладку, но обратите внимание, что fill реализован через копию множества нулей по PCI-E, то есть он очень медленный
     // Если вам нужно занулять буферы в процессе вычислений - используйте кернел который это сделает (см. кернел fill_buffer_with_zeros)
     buffer1_gpu.fill(255);
-    buffer2_gpu.fill(255);
-    buffer3_gpu.fill(255);
-    buffer4_gpu.fill(255);
     buffer_output_gpu.fill(255);
 
     // Запускаем кернел (несколько раз и с замером времени выполнения)
     std::vector<double> times;
-    for (int iter = 0; iter < 10; ++iter) { // TODO при отладке запускайте одну итерацию
+    for (int iter = 0; iter < 1; ++iter) { // TODO при отладке запускайте одну итерацию
         timer t;
 
         // Запускаем кернел, с указанием размера рабочего пространства и передачей всех аргументов
         // Если хотите - можете удалить ветвление здесь и оставить только тот код который соответствует вашему выбору API
         if (context.type() == gpu::Context::TypeOpenCL) {
-            gpu::WorkSize workSize(GROUP_SIZE, n);
-
-            ocl_fillBufferWithZeros.exec(workSize, buffer1_gpu, max_value);
-            ocl_radixSort01LocalCounting.exec(workSize, input_gpu, buffer1_gpu, n);
+            ocl_fillBufferWithZeros.exec(gpu::WorkSize(GROUP_SIZE, max_value + 1), buffer1_gpu, max_value + 1);
+            ocl_radixSort01LocalCounting.exec(gpu::WorkSize(GROUP_SIZE, n), input_gpu, buffer1_gpu, n);
 
             // std::vector<unsigned int> counts = buffer1_gpu.readVector();
             // std::cout << "counts:" << std::endl;
-            // for (int i = 0; i < max_value; ++i) {
-            //     std::cout << i << ": " << counts[i] << std::endl;
+            // for (int i = 0; i <= max_value; ++i) {
+            //     if (counts[i] != 0) {
+            //         std::cout << i << ": " << counts[i] << std::endl;
+            //     }
             // }
 
-            auto pos = calculate_prefix(ocl_radixSort02GlobalPrefixesScanSumReduction, ocl_radixSort03GlobalPrefixesScanAccumulation, buffer1_gpu, max_value);
+            auto pos = calculate_prefix(ocl_radixSort02GlobalPrefixesScanSumReduction, ocl_radixSort03GlobalPrefixesScanAccumulation, buffer1_gpu, max_value + 1);
 
             // std::vector<unsigned int> cpu_pos = pos.readVector();
             // std::cout << "prefixes:" << std::endl;
@@ -145,7 +145,8 @@ void run(int argc, char** argv)
             //     std::cout << i << ": " << cpu_pos[i] << std::endl;
             // }
 
-            ocl_radixSort04Scatter.exec(workSize, pos, input_gpu, buffer_output_gpu, n);
+            ocl_radixSort04Scatter.exec(gpu::WorkSize(GROUP_SIZE, n), pos, input_gpu, buffer_output_gpu, n);
+            // exit(0);
 
         } else if (context.type() == gpu::Context::TypeCUDA) {
             // TODO
@@ -180,6 +181,7 @@ void run(int argc, char** argv)
 
     // Сверяем результат
     for (size_t i = 0; i < n; ++i) {
+        // std::cout << "sorted[" << i << "] = " << gpu_sorted[i] << std::endl;
         rassert(sorted[i] == gpu_sorted[i], 566324523452323, sorted[i], gpu_sorted[i], i);
     }
 

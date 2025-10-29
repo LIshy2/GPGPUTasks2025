@@ -14,6 +14,7 @@ __kernel void radix_sort_02_global_prefixes_scan_sum_reduction(
     __global uint* blocks,
     unsigned int n)
 {
+    // printf("data=%p prefixes=%p blocks=%p\n", data, prefixes, blocks);
     const unsigned int g_ind = get_global_id(0);
     const unsigned int l_ind = get_local_id(0);
 
