@@ -98,7 +98,7 @@ void run(int argc, char** argv)
         if (context.type() == gpu::Context::TypeOpenCL) {
             int b = 1;
             while (b < n) {
-                ocl_aplusb.exec(gpu::WorkSize(GROUP_SIZE, n), input_gpu, buffer_output_gpu, b, n);
+                ocl_mergeSort.exec(gpu::WorkSize(GROUP_SIZE, n), input_gpu, buffer_output_gpu, b, n);
                 b *= 2;
                 std::swap(input_gput, buffer_output_gpu);
             }
