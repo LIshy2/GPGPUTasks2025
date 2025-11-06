@@ -24,13 +24,14 @@ merge_sort(
 
     int d = i - block_i * sorted_k * 2;
 
-    int l = 0;
-    int r = d + 1;
+    int l = max(0, d - sorted_k);
+    int r = min(d + 1, sorted_k + 1);
+
     while (l + 1 < r) {
         int m = (l + r) / 2;
         int li = m;
         int ri = d - m;
-        if (li == 0 || rb + ri >= n || input_data[lb + li - 1] <= input_data[rb + ri]) {
+        if (li == 0 || rb + ri >= n || ri >= sorted_k || input_data[lb + li - 1] <= input_data[rb + ri]) {
             l = m;
         } else {
             r = m;
