@@ -34,13 +34,13 @@ merge_sort(
         int m = (l + r) / 2;
         int li = m;
         int ri = d - m;
-        if (li < sorted_k && (input_data[lb + li] < input_data[rb + ri - 1])) {
+        if (li < sorted_k && (input_data[lb + li] <= input_data[rb + ri - 1])) {
             l = m + 1;
         } else {
             r = m;
         }
     }
-    if (rb + d - l >= n || input_data[lb + l] <= input_data[rb + d - l]) {
+    if (input_data[lb + l] <= input_data[rb + d - l]) {
         output_data[i] = input_data[lb + l];
     } else {
         output_data[i] = input_data[rb + d - l];
