@@ -27,7 +27,7 @@ merge_sort(
     int l = max(0, d - sorted_k);
     int r = min(d, sorted_k);
 
-    while (l + 1 < r) {
+    while (l < r) {
         int m = (l + r) / 2;
         int li = m;
         int ri = d - m;
@@ -39,7 +39,7 @@ merge_sort(
     }
     if (l >= sorted_k) {
         output_data[i] = input_data[rb + d - l];
-    } else if (r >= sorted_k) {
+    } else if (d - l >= sorted_k) {
         output_data[i] = input_data[lb + l];
     } else if (rb + d - l >= n || input_data[lb + l] <= input_data[rb + d - l]) {
         output_data[i] = input_data[lb + l];
