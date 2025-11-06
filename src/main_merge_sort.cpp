@@ -102,7 +102,7 @@ void run(int argc, char** argv)
                 b *= 2;
                 std::swap(input_gpu, buffer_output_gpu);
             }
-            std::swap(input_gput, buffer_output_gpu);
+            std::swap(input_gpu, buffer_output_gpu);
         } else if (context.type() == gpu::Context::TypeCUDA) {
             // TODO
             throw std::runtime_error(CODE_IS_NOT_IMPLEMENTED);
