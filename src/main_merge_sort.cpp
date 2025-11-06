@@ -86,8 +86,8 @@ void run(int argc, char** argv)
     // Советую занулить (или еще лучше - заполнить какой-то уникальной константой, например 255) все буферы
     // В некоторых случаях это ускоряет отладку, но обратите внимание, что fill реализован через копию множества нулей по PCI-E, то есть он очень медленный
     // Если вам нужно занулять буферы в процессе вычислений - используйте кернел который это сделает (см. кернел fill_buffer_with_zeros)
-    input_gpu.writeN(as.data(), n);
-    buffer_tmp_gpu.writeN(as.data(), n);
+    buffer_tmp_gpu.fill(255);
+    buffer_output_gpu.fill(255);
 
     // Запускаем кернел (несколько раз и с замером времени выполнения)
     std::vector<double> times;
@@ -98,12 +98,14 @@ void run(int argc, char** argv)
         // Если хотите - можете удалить ветвление здесь и оставить только тот код который соответствует вашему выбору API
         if (context.type() == gpu::Context::TypeOpenCL) {
             int b = 1;
+            ocl_mergeSort.exec(gpu::WorkSize(GROUP_SIZE, n), input_gpu, buffer_tmp_gpu, b, n);
+            b *= 2;
             while (b < n) {
-                ocl_mergeSort.exec(gpu::WorkSize(GROUP_SIZE, n), input_gpu, buffer_output_gpu, b, n);
+                ocl_mergeSort.exec(gpu::WorkSize(GROUP_SIZE, n), buffer_tmp_gpu, buffer_output_gpu, b, n);
                 b *= 2;
-                std::swap(input_gpu, buffer_output_gpu);
+                std::swap(buffer_tmp_gpu, buffer_output_gpu);
             }
-            std::swap(input_gpu, buffer_output_gpu);
+            std::swap(buffer_tmp_gpu, buffer_output_gpu);
         } else if (context.type() == gpu::Context::TypeCUDA) {
             // TODO
             throw std::runtime_error(CODE_IS_NOT_IMPLEMENTED);
