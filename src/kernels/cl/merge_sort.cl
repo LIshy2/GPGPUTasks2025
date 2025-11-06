@@ -31,7 +31,7 @@ merge_sort(
         int m = (l + r) / 2;
         int li = m;
         int ri = d - m;
-        if (li >= sorted_k) {
+        if (li > sorted_k) {
             r = m;
         } else if (rb + ri >= n || ri >= sorted_k || input_data[lb + li - 1] <= input_data[rb + ri]) {
             l = m;
@@ -39,7 +39,9 @@ merge_sort(
             r = m;
         }
     }
-    if (rb + d - l >= n || input_data[lb + l] <= input_data[rb + d - l]) {
+    if (l >= sorted_k) {
+        output_data[i] = input_data[rb + d - l];
+    } else if (rb + d - l >= n || input_data[lb + l] <= input_data[rb + d - l]) {
         output_data[i] = input_data[lb + l];
     } else {
         output_data[i] = input_data[rb + d - l];
