@@ -100,7 +100,7 @@ void run(int argc, char** argv)
             while (b < n) {
                 ocl_mergeSort.exec(gpu::WorkSize(GROUP_SIZE, n), input_gpu, buffer_output_gpu, b, n);
                 b *= 2;
-                std::swap(input_gput, buffer_output_gpu);
+                std::swap(input_gpu, buffer_output_gpu);
             }
             std::swap(input_gput, buffer_output_gpu);
         } else if (context.type() == gpu::Context::TypeCUDA) {
