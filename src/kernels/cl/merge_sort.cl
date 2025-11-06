@@ -31,7 +31,7 @@ merge_sort(
         int m = (l + r) / 2;
         int li = m;
         int ri = d - m;
-        if (li < sorted_k && ri > 0 && input_data[lb + li] < input_data[rb + ri - 1]) {
+        if (rb + ri - 1 >= n || (li < sorted_k && ri > 0 && input_data[lb + li] < input_data[rb + ri - 1])) {
             l = m + 1;
         } else {
             r = m;
