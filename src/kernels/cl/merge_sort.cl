@@ -18,7 +18,7 @@ merge_sort(
     int lb = block_i * sorted_k * 2;
     int rb = block_i * sorted_k * 2 + sorted_k;
 
-    if (rb  >= n) {
+    if (rb >= n) {
         return;
     }
 
@@ -31,7 +31,9 @@ merge_sort(
         int m = (l + r) / 2;
         int li = m;
         int ri = d - m;
-        if (li == 0 || rb + ri >= n || ri >= sorted_k || input_data[lb + li - 1] <= input_data[rb + ri]) {
+        if (li >= sorted_k) {
+            r = m;
+        } else if (rb + ri >= n || ri >= sorted_k || input_data[lb + li - 1] <= input_data[rb + ri]) {
             l = m;
         } else {
             r = m;
