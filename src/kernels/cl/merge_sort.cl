@@ -19,19 +19,22 @@ merge_sort(
     int rb = block_i * sorted_k * 2 + sorted_k;
 
     if (rb >= n) {
+        if (i < n) {
+            output_data[i] = input_data[i];
+        }
         return;
     }
 
     int d = i - block_i * sorted_k * 2;
 
-    int l = max(0, d - sorted_k);
+    int l = max(0, d - min(sorted_k, n - rb));
     int r = min(d, sorted_k);
 
     while (l < r) {
         int m = (l + r) / 2;
         int li = m;
         int ri = d - m;
-        if (li < sorted_k && (input_data[lb + li] < input_data[rb + ri - 1] || ri >= sorted_k || rb + ri - 1 >= n)) {
+        if (li < sorted_k && (input_data[lb + li] < input_data[rb + ri - 1])) {
             l = m + 1;
         } else {
             r = m;
