@@ -25,7 +25,7 @@ merge_sort(
     int d = i - block_i * sorted_k * 2;
 
     int l = 0;
-    int r = d;
+    int r = d + 1;
     while (l + 1 < r) {
         int m = (l + r) / 2;
         int li = m;
