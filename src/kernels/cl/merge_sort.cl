@@ -2,16 +2,43 @@
 #include <libgpu/opencl/cl/clion_defines.cl> // This file helps CLion IDE to know what additional functions exists in OpenCL's extended C99
 #endif
 
-#include "helpers/rassert.cl"
 #include "../defines.h"
+#include "helpers/rassert.cl"
 
-__attribute__((reqd_work_group_size(1, 1, 1)))
-__kernel void merge_sort(
+__attribute__((reqd_work_group_size(GROUP_SIZE, 1, 1)))
+__kernel void
+merge_sort(
     __global const uint* input_data,
-    __global       uint* output_data,
-                   int  sorted_k,
-                   int  n)
+    __global uint* output_data,
+    int sorted_k,
+    int n)
 {
     const unsigned int i = get_global_id(0);
-    // TODO
+    int block_i = i / (sorted_k * 2);
+    int lb = block_i * sorted_k * 2;
+    int rb = block_i * sorted_k * 2 + sorted_k;
+
+    if (rb  >= n) {
+        return;
+    }
+
+    int d = i - block_i * sorted_k * 2;
+
+    int l = 0;
+    int r = d;
+    while (l + 1 < r) {
+        int m = (l + r) / 2;
+        int li = m;
+        int ri = d - m;
+        if (li == 0 || rb + ri >= n || input_data[lb + li - 1] <= input_data[rb + ri]) {
+            l = m;
+        } else {
+            r = m;
+        }
+    }
+    if (rb + d - l >= n || input_data[lb + l] <= input_data[rb + d - l]) {
+        output_data[i] = input_data[lb + l];
+    } else {
+        output_data[i] = input_data[rb + d - l];
+    }
 }
