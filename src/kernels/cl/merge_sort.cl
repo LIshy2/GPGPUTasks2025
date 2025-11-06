@@ -31,17 +31,13 @@ merge_sort(
         int m = (l + r) / 2;
         int li = m;
         int ri = d - m;
-        if (rb + ri - 1 >= n || (li < sorted_k && ri > 0 && input_data[lb + li] < input_data[rb + ri - 1])) {
+        if (li < sorted_k && (input_data[lb + li] < input_data[rb + ri - 1] || ri >= sorted_k || rb + ri - 1 >= n)) {
             l = m + 1;
         } else {
             r = m;
         }
     }
-    if (l >= sorted_k) {
-        output_data[i] = input_data[rb + d - l];
-    } else if (d - l >= sorted_k) {
-        output_data[i] = input_data[lb + l];
-    } else if (rb + d - l >= n || input_data[lb + l] <= input_data[rb + d - l]) {
+    if (rb + d - l >= n || input_data[lb + l] <= input_data[rb + d - l]) {
         output_data[i] = input_data[lb + l];
     } else {
         output_data[i] = input_data[rb + d - l];
