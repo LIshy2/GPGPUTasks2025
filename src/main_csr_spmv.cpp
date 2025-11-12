@@ -164,7 +164,6 @@ void run(int argc, char** argv)
             // Если хотите - можете удалить ветвление здесь и оставить только тот код который соответствует вашему выбору API
             if (context.type() == gpu::Context::TypeOpenCL) {
                 ocl_spvm.exec(gpu::WorkSize(GROUP_SIZE, nrows), csr_row_offsets_gpu, csr_columns_gpu, csr_values_gpu, nrows, vector_values_gpu, output_vector_values_gpu);
-                throw std::runtime_error(CODE_IS_NOT_IMPLEMENTED);
             } else if (context.type() == gpu::Context::TypeCUDA) {
                 // TODO
                 throw std::runtime_error(CODE_IS_NOT_IMPLEMENTED);
