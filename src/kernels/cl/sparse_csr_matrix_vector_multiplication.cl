@@ -5,7 +5,7 @@
 #include "../defines.h"
 #include "helpers/rassert.cl"
 
-__attribute__((reqd_work_group_size(1, 1, 1)))
+__attribute__((reqd_work_group_size(GROUP_SIZE, 1, 1)))
 __kernel void
 sparse_csr_matrix_vector_multiplication(
     __global const uint* row_offset,
