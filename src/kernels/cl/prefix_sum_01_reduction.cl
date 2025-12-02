@@ -25,8 +25,9 @@ prefix_sum_01_reduction(
 
     barrier(CLK_LOCAL_MEM_FENCE);
 
-    prefixes[g_ind] = 0;
-
+    if (g_ind < n) {
+        prefixes[g_ind] = 0;
+    }
     for (uint pow2 = 1; pow2 < GROUP_SIZE; pow2 *= 2) {
         uint i = (l_ind + 1) * pow2 * 2 - 1;
         if (i < GROUP_SIZE)
